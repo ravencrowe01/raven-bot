@@ -16,7 +16,7 @@
     <RepositoryUrl>https://github.com/ravencrowe01/raven-bot</RepositoryUrl>
     <PackageProjectUrl>https://github.com/ravencrowe01/raven-bot</PackageProjectUrl>
     <RepositoryType>git</RepositoryType>
-    <SignAssembly>true</SignAssembly>
+    <SignAssembly>false</SignAssembly>
     <AssemblyOriginatorKeyFile>RavenBot.pfx</AssemblyOriginatorKeyFile>
   </PropertyGroup>
 

@@ -4,7 +4,7 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net5.0</TargetFramework>
     <Platforms>AnyCPU;x64</Platforms>
-    <PackageId>RavenBot</PackageId>
+    <PackageId>RavenBotProgram</PackageId>
     <Authors>Raven Crowe</Authors>
     <Product>RavenBot</Product>
     <Description>A light-weight Discord bot using DSharp+ for gateway and command handling.</Description>
@@ -15,7 +15,7 @@
     <RepositoryType>git</RepositoryType>
     <PackageTags>Discord, bot, Discord Bot</PackageTags>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-    <SignAssembly>true</SignAssembly>
+    <SignAssembly>false</SignAssembly>
     <AssemblyOriginatorKeyFile>RavenBot.pfx</AssemblyOriginatorKeyFile>
   </PropertyGroup>
 
