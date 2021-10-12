@@ -3,9 +3,7 @@
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <TargetFramework>net5.0</TargetFramework>
-    <ApplicationIcon />
-    <StartupObject />
-    <Platforms>AnyCPU;x64</Platforms>
+    <Platforms>x64</Platforms>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <Authors>Raven Crowe</Authors>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
@@ -21,15 +19,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="DSharpPlus" Version="4.1.0" />
     <PackageReference Include="DSharpPlus.CommandsNext" Version="4.1.0" />
-    <PackageReference Include="Microsoft.Extensions.Configuration" Version="5.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="5.0.0" />
-    <PackageReference Include="System.Configuration.ConfigurationManager" Version="5.0.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\RavenBot.Required\RavenBot.Required.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
-    <Platforms>AnyCPU;x64</Platforms>
+    <Platforms>x64</Platforms>
     <Authors>Raven Crowe</Authors>
     <Description>An implementation of RavenBot to load commands from external assemblies at runtime.</Description>
     <Copyright>Copyright (c) Raven Crowe 2021</Copyright>
@@ -18,6 +18,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\RavenBot.Required\RavenBot.Required.csproj" />
     <ProjectReference Include="..\RavenBot\RavenBot.csproj" />
   </ItemGroup>
 

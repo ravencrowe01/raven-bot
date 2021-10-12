@@ -392,3 +392,4 @@ config.json
 .vscode/launch.json
 
 *.licenseheader
+.vscode/tasks.json

@@ -3,7 +3,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net5.0</TargetFramework>
-    <Platforms>AnyCPU;x64</Platforms>
+    <Platforms>x64</Platforms>
     <PackageId>RavenBotProgram</PackageId>
     <Authors>Raven Crowe</Authors>
     <Product>RavenBot</Product>
@@ -20,7 +20,15 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\RavenBot.External\RavenBot.External.csproj" />
+    <Content Remove="DSharpPlus.CommandsNext" />
+    <Content Remove="DSharpPlus" />
+    <Content Remove="Microsoft.Extensions.Configuration.Abstractions.dll" />
+    <Content Remove="Microsoft.Extensions.Configuration.dll" />
+    <Content Remove="Microsoft.Extensions.Configuration.FileExtensions.dll" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\RavenBot.External\RavenBot.External.csproj"  />
   </ItemGroup>
 
   <ItemGroup>

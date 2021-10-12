@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
-    <Platforms>AnyCPU;x64</Platforms>
+    <Platforms>x64</Platforms>
     <Authors>Raven Crowe</Authors>
     <Description>A package containing IRequiredServices to build commands for ExternalCommandRavenBot.</Description>
     <Copyright>Copyright (c) Raven Crowe 2021</Copyright>
