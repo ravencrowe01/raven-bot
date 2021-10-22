@@ -19,6 +19,8 @@
 
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
+using DSharpPlus.Interactivity;
+using DSharpPlus.Interactivity.Extensions;
 using Microsoft.Extensions.Logging;
 using RavenBot.External.Commands;
 using RavenBot.External.Services;
@@ -30,6 +32,14 @@ using System.Threading.Tasks;
 
 namespace RavenBot.External {
     public class ExternalCommandRavenBot : RavenBot {
+        public const string InteractivityKey = "interactivity";
+        public const string TimeOutKey = "timeout";
+        public const string DaysKey = "days";
+        public const string HoursKey = "hours";
+        public const string MinutesKey = "minutes";
+        public const string SecondsKey = "seconds";
+        public const string MilisecondsKey = "miliseconds";
+
         private readonly Func<ILogger<BaseDiscordClient>, ICommandLoader> _commandLoaderBuilder;
         private ICommandLoader _commandLoader;
         private List<Assembly> _commandAssemblies;
@@ -52,35 +62,80 @@ namespace RavenBot.External {
 
         public override async Task RunAsync () {
             Setup();
+            LoadInteractivity();
             LoadCommands();
             LoadRequiredServices();
             await base.RunAsync();
-        }
 
-        private void LoadCommands () {
-            _commandLoader ??= _commandLoaderBuilder.Invoke(_client.Logger);
+            void LoadInteractivity() {
+                var interactivitySection = _config.GetSection(InteractivityKey);
+                var children = interactivitySection.GetChildren().ToList();
 
-            _commandAssemblies = _commandLoader.LoadCommandAssemblies();
+                if (children?.Count == 0) {
+                    return;
+                }
 
-            _commandAssemblies.ForEach(asm => {
-                var types = asm.GetTypes().ToList();
-
-                types.ForEach(type => {
-                    if (type.IsAssignableTo(typeof(BaseCommandModule))) {
-                        _commandTypes.Add(type);
-                    }
+                _client.UseInteractivity(new InteractivityConfiguration() { 
+                    Timeout = GetDefaultTimeOut()
                 });
-            });
-        }
 
-        private void LoadRequiredServices () {
-            _requiredServicesProvider ??= _requiredServicesProviderBuilder.Invoke(_commandAssemblies);
+                TimeSpan GetDefaultTimeOut () {
+                    var timeoutSecton = _config.GetSection(TimeOutKey);
+                    var days = 0;
+                    var hours = 0;
+                    var minutes = 0;
+                    var seconds = 30;
+                    var miliseconds = 0;
 
-            _requiredServicesProvider.RequiredSingletonServices?.ForEach(AddRequiredSingletonService);
+                    children.ForEach(c => {
+                        switch (c.Key) {
+                            case DaysKey:
+                                days = int.Parse(c.Value);
+                                break;
+                            case HoursKey:
+                                hours = int.Parse(c.Value);
+                                break;
+                            case MinutesKey:
+                                minutes = int.Parse(c.Value);
+                                break;
+                            case SecondsKey:
+                                seconds = int.Parse(c.Value);
+                                break;
+                            case MilisecondsKey:
+                                miliseconds = int.Parse(c.Value);
+                                break;
+                        }
+                    });
 
-            _requiredServicesProvider.RequiredScopedServices?.ForEach(AddRequiredScopedService);
+                    return new TimeSpan(days, hours, minutes, seconds, miliseconds);
+                }
+            }
 
-            _requiredServicesProvider.RequiredTransientServices?.ForEach(AddRequiredTransientService);
+            void LoadCommands () {
+                _commandLoader ??= _commandLoaderBuilder.Invoke(_client.Logger);
+
+                _commandAssemblies = _commandLoader.LoadCommandAssemblies();
+
+                _commandAssemblies.ForEach(asm => {
+                    var types = asm.GetTypes().ToList();
+
+                    types.ForEach(type => {
+                        if (type.IsAssignableTo(typeof(BaseCommandModule))) {
+                            _commandTypes.Add(type);
+                        }
+                    });
+                });
+            }
+
+            void LoadRequiredServices () {
+                _requiredServicesProvider ??= _requiredServicesProviderBuilder.Invoke(_commandAssemblies);
+
+                _requiredServicesProvider.RequiredSingletonServices?.ForEach(AddRequiredSingletonService);
+
+                _requiredServicesProvider.RequiredScopedServices?.ForEach(AddRequiredScopedService);
+
+                _requiredServicesProvider.RequiredTransientServices?.ForEach(AddRequiredTransientService);
+            }
         }
     }
 }
