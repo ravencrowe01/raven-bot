@@ -19,6 +19,11 @@
     <AssemblyOriginatorKeyFile>RavenBot.pfx</AssemblyOriginatorKeyFile>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+  </PropertyGroup>
+
   <ItemGroup>
     <Content Remove="DSharpPlus.CommandsNext" />
     <Content Remove="DSharpPlus" />
@@ -28,7 +33,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\RavenBot.External\RavenBot.External.csproj"  />
+    <ProjectReference Include="..\RavenBot.External\RavenBot.External.csproj" />
   </ItemGroup>
 
   <ItemGroup>

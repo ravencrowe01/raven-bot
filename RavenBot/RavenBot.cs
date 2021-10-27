@@ -19,17 +19,27 @@
 
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
+using DSharpPlus.Interactivity;
+using DSharpPlus.Interactivity.Extensions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace RavenBot {
     public class RavenBot {
         public const string TokenKey = "token";
         public const string PrefixKey = "prefix";
+        public const string InteractivityKey = "interactivity";
+        public const string TimeOutKey = "timeout";
+        public const string DaysKey = "days";
+        public const string HoursKey = "hours";
+        public const string MinutesKey = "minutes";
+        public const string SecondsKey = "seconds";
+        public const string MilisecondsKey = "miliseconds";
 
         protected IConfigurationRoot _config;
 
@@ -60,15 +70,15 @@ namespace RavenBot {
 
         protected void Setup () {
             _client = CreateDiscordClient(_config);
+            LoadInteractivity();
             _commands = UseCommandsNext(_client, _config, _serviceDescriptors, _commandTypes);
 
-            DiscordClient CreateDiscordClient (IConfiguration config) {
-                return new DiscordClient(new DiscordConfiguration() {
-                    Token = config[TokenKey],
-                    TokenType = TokenType.Bot,
-                    Intents = DiscordIntents.AllUnprivileged
-                });
-            }
+            static DiscordClient CreateDiscordClient (IConfiguration config) => 
+                new(new DiscordConfiguration() {
+                Token = config[TokenKey],
+                TokenType = TokenType.Bot,
+                Intents = DiscordIntents.AllUnprivileged
+            });
 
             static CommandsNextExtension UseCommandsNext (DiscordClient client, IConfigurationRoot config, IServiceCollection serviceDescriptors, List<Type> commandTypes) {
                 var commands = client.UseCommandsNext(new CommandsNextConfiguration() {
@@ -79,6 +89,50 @@ namespace RavenBot {
                 commandTypes.ForEach(t => commands.RegisterCommands(t));
 
                 return commands;
+            }
+
+            void LoadInteractivity () {
+                var interactivitySection = _config.GetSection(InteractivityKey);
+                var children = interactivitySection.GetChildren().ToList();
+
+                if (children?.Count == 0) {
+                    return;
+                }
+
+                _client.UseInteractivity(new InteractivityConfiguration() {
+                    Timeout = GetDefaultTimeOut()
+                });
+
+                TimeSpan GetDefaultTimeOut () {
+                    var timeoutSecton = _config.GetSection(TimeOutKey);
+                    var days = 0;
+                    var hours = 0;
+                    var minutes = 0;
+                    var seconds = 30;
+                    var miliseconds = 0;
+
+                    children.ForEach(c => {
+                        switch (c.Key) {
+                            case DaysKey:
+                                days = int.Parse(c.Value);
+                                break;
+                            case HoursKey:
+                                hours = int.Parse(c.Value);
+                                break;
+                            case MinutesKey:
+                                minutes = int.Parse(c.Value);
+                                break;
+                            case SecondsKey:
+                                seconds = int.Parse(c.Value);
+                                break;
+                            case MilisecondsKey:
+                                miliseconds = int.Parse(c.Value);
+                                break;
+                        }
+                    });
+
+                    return new TimeSpan(days, hours, minutes, seconds, miliseconds);
+                }
             }
         }
 
@@ -92,28 +146,22 @@ namespace RavenBot {
             }
         }
 
-        public void AddRequiredSingletonService<T> () where T : class {
-            _serviceDescriptors.AddSingleton<T>();
+        public void AddRequiredSingletonService<TService, TImplementation> () where TService : class where TImplementation : class => AddRequiredSingletonService(typeof(TService), typeof(TImplementation));
+
+        public void AddRequiredSingletonService (Type service, Type implementation) {
+            _serviceDescriptors = _serviceDescriptors.AddSingleton(service, implementation);
         }
 
-        public void AddRequiredSingletonService (Type type) {
-            _serviceDescriptors.AddSingleton(type);
+        public void AddRequiredScopedService<TService, TImplementation> () where TService : class where TImplementation : class => AddRequiredScopedService(typeof(TService), typeof(TImplementation));
+
+        public void AddRequiredScopedService (Type service, Type implementation) {
+            _serviceDescriptors = _serviceDescriptors.AddScoped(service, implementation);
         }
 
-        public void AddRequiredScopedService<T> () where T : class {
-            _serviceDescriptors.AddScoped<T>();
-        }
+        public void AddRequiredTransientService<TService, TImplementation> () where TService : class where TImplementation : class => AddRequiredTransientService(typeof(TService), typeof(TImplementation));
 
-        public void AddRequiredScopedService (Type type) {
-            _serviceDescriptors.AddScoped(type);
-        }
-
-        public void AddRequiredTransientService<T> () where T : class {
-            _serviceDescriptors.AddTransient<T>();
-        }
-
-        public void AddRequiredTransientService (Type type) {
-            _serviceDescriptors.AddTransient(type);
+        public void AddRequiredTransientService (Type service, Type implementation) {
+            _serviceDescriptors = _serviceDescriptors.AddTransient(service, implementation);
         }
     }
 }

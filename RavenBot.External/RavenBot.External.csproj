@@ -31,8 +31,4 @@
     </None>
   </ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="DSharpPlus.Interactivity" Version="4.1.0" />
-  </ItemGroup>
-
 </Project>

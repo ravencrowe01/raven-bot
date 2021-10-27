@@ -24,9 +24,9 @@ using System.Reflection;
 
 namespace RavenBot.External.Services {
     public class RequiredServicesProvider : IRequiredServicesProvider {
-        public List<Type> RequiredSingletonServices { get; }
-        public List<Type> RequiredScopedServices { get; }
-        public List<Type> RequiredTransientServices { get; }
+        public List<RequiredService> RequiredSingletonServices { get; }
+        public List<RequiredService> RequiredScopedServices { get; }
+        public List<RequiredService> RequiredTransientServices { get; }
 
         public RequiredServicesProvider (IReadOnlyCollection<Assembly> commandAssemblies) {
             GetRequiredServices(commandAssemblies);
@@ -39,7 +39,7 @@ namespace RavenBot.External.Services {
             GetRequiredScoped();
             GetRequiredTransient();
 
-            IReadOnlyCollection<Type> GetServiceConfigurations ()
+            IList<Type> GetServiceConfigurations ()
             {
                 return (from asm in commandAssemblies 
                         from type in asm.ExportedTypes 
@@ -48,65 +48,74 @@ namespace RavenBot.External.Services {
             }
 
             void GetRequiredSingletons () {
-                var singletons = new List<Type>();
-                LoadRequiredSingletons();
+                var singletons = LoadRequiredSingletons();
 
                 if (singletons?.Count > 0) {
-                    foreach (var type in singletons) {
-                        RequiredSingletonServices.Add(type);
+                    foreach (var service in singletons) {
+                        RequiredSingletonServices.Add(service);
                     }
                 }
 
-                void LoadRequiredSingletons () {
+                List<RequiredService> LoadRequiredSingletons () {
+                    var services = new List<RequiredService>();
+
                     foreach (var config in requiredServicesConfigurations) {
                         var requiredServices = Activator.CreateInstance(config) as IRequiredServicesProvider;
 
                         if (requiredServices?.RequiredSingletonServices?.Count > 0) {
-                            singletons.AddRange(requiredServices.RequiredSingletonServices);
+                            services.AddRange(requiredServices.RequiredSingletonServices);
                         }
                     }
+
+                    return services;
                 }
             }
 
             void GetRequiredScoped () {
-                var scoped = new List<Type>();
-                LoadRequiredScoped();
+                var scoped = LoadRequiredScoped();
 
                 if (scoped?.Count > 0) {
-                    foreach (var type in scoped) {
-                        RequiredScopedServices.Add(type);
+                    foreach (var service in scoped) {
+                        RequiredScopedServices.Add(service);
                     }
                 }
 
-                void LoadRequiredScoped () {
+                List<RequiredService> LoadRequiredScoped () {
+                    var services = new List<RequiredService>();
+
                     foreach (var config in requiredServicesConfigurations) {
                         var requiredServices = Activator.CreateInstance(config) as IRequiredServicesProvider;
 
                         if (requiredServices?.RequiredScopedServices?.Count > 0) {
-                            scoped.AddRange(requiredServices.RequiredScopedServices);
+                            services.AddRange(requiredServices.RequiredScopedServices);
                         }
                     }
+
+                    return services;
                 }
             }
 
             void GetRequiredTransient () {
-                var transient = new List<Type>();
-                LoadRequiredTransient();
+                var transient = LoadRequiredTransient();
 
                 if (transient?.Count > 0) {
-                    foreach (var type in transient) {
-                        RequiredTransientServices.Add(type);
+                    foreach (var service in transient) {
+                        RequiredTransientServices.Add(service);
                     }
                 }
 
-                void LoadRequiredTransient () {
+                List<RequiredService> LoadRequiredTransient () {
+                    var services = new List<RequiredService>();
+
                     foreach (var config in requiredServicesConfigurations) {
                         var requiredServices = Activator.CreateInstance(config) as IRequiredServicesProvider;
 
                         if (requiredServices?.RequiredTransientServices?.Count > 0) {
-                            transient.AddRange(requiredServices.RequiredTransientServices);
+                            services.AddRange(requiredServices.RequiredTransientServices);
                         }
                     }
+
+                    return services;
                 }
             }
         }

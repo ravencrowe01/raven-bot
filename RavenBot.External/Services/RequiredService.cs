@@ -18,17 +18,10 @@
 #endregion
 
 using System;
-using System.Collections.Generic;
 
 namespace RavenBot.External.Services {
-    public interface IRequiredServicesProvider {
-        public struct ServiceImplementation {
-            public Type Service { get; set; }
-            public Type Implementation { get; set; }
-        }
-
-        List<RequiredService> RequiredSingletonServices { get; }
-        List<RequiredService> RequiredScopedServices { get; }
-        List<RequiredService> RequiredTransientServices { get; }
+    public struct RequiredService {
+        public Type Service { get; set; }
+        public Type Implementation { get; set; }
     }
 }

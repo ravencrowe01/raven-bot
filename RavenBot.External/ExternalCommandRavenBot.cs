@@ -19,8 +19,6 @@
 
 using DSharpPlus;
 using DSharpPlus.CommandsNext;
-using DSharpPlus.Interactivity;
-using DSharpPlus.Interactivity.Extensions;
 using Microsoft.Extensions.Logging;
 using RavenBot.External.Commands;
 using RavenBot.External.Services;
@@ -32,13 +30,6 @@ using System.Threading.Tasks;
 
 namespace RavenBot.External {
     public class ExternalCommandRavenBot : RavenBot {
-        public const string InteractivityKey = "interactivity";
-        public const string TimeOutKey = "timeout";
-        public const string DaysKey = "days";
-        public const string HoursKey = "hours";
-        public const string MinutesKey = "minutes";
-        public const string SecondsKey = "seconds";
-        public const string MilisecondsKey = "miliseconds";
 
         private readonly Func<ILogger<BaseDiscordClient>, ICommandLoader> _commandLoaderBuilder;
         private ICommandLoader _commandLoader;
@@ -47,7 +38,7 @@ namespace RavenBot.External {
         private readonly Func<List<Assembly>, IRequiredServicesProvider> _requiredServicesProviderBuilder;
         private IRequiredServicesProvider _requiredServicesProvider;
 
-        public ExternalCommandRavenBot(Func<ILogger<BaseDiscordClient>, ICommandLoader> commandLoaderBuilder,
+        public ExternalCommandRavenBot (Func<ILogger<BaseDiscordClient>, ICommandLoader> commandLoaderBuilder,
                                         Func<List<Assembly>, IRequiredServicesProvider> requiredServicesProviderBuilder) {
             _commandLoaderBuilder = commandLoaderBuilder;
             _requiredServicesProviderBuilder = requiredServicesProviderBuilder;
@@ -62,54 +53,9 @@ namespace RavenBot.External {
 
         public override async Task RunAsync () {
             Setup();
-            LoadInteractivity();
             LoadCommands();
             LoadRequiredServices();
-            await base.RunAsync();
-
-            void LoadInteractivity() {
-                var interactivitySection = _config.GetSection(InteractivityKey);
-                var children = interactivitySection.GetChildren().ToList();
-
-                if (children?.Count == 0) {
-                    return;
-                }
-
-                _client.UseInteractivity(new InteractivityConfiguration() { 
-                    Timeout = GetDefaultTimeOut()
-                });
-
-                TimeSpan GetDefaultTimeOut () {
-                    var timeoutSecton = _config.GetSection(TimeOutKey);
-                    var days = 0;
-                    var hours = 0;
-                    var minutes = 0;
-                    var seconds = 30;
-                    var miliseconds = 0;
-
-                    children.ForEach(c => {
-                        switch (c.Key) {
-                            case DaysKey:
-                                days = int.Parse(c.Value);
-                                break;
-                            case HoursKey:
-                                hours = int.Parse(c.Value);
-                                break;
-                            case MinutesKey:
-                                minutes = int.Parse(c.Value);
-                                break;
-                            case SecondsKey:
-                                seconds = int.Parse(c.Value);
-                                break;
-                            case MilisecondsKey:
-                                miliseconds = int.Parse(c.Value);
-                                break;
-                        }
-                    });
-
-                    return new TimeSpan(days, hours, minutes, seconds, miliseconds);
-                }
-            }
+            await _client.ConnectAsync().ConfigureAwait(false);
 
             void LoadCommands () {
                 _commandLoader ??= _commandLoaderBuilder.Invoke(_client.Logger);
@@ -130,11 +76,17 @@ namespace RavenBot.External {
             void LoadRequiredServices () {
                 _requiredServicesProvider ??= _requiredServicesProviderBuilder.Invoke(_commandAssemblies);
 
-                _requiredServicesProvider.RequiredSingletonServices?.ForEach(AddRequiredSingletonService);
+                _requiredServicesProvider.RequiredSingletonServices?.ForEach(si => {
+                    AddRequiredSingletonService(si.Service, si.Implementation);
+                });
 
-                _requiredServicesProvider.RequiredScopedServices?.ForEach(AddRequiredScopedService);
+                _requiredServicesProvider.RequiredScopedServices?.ForEach(si => {
+                    AddRequiredScopedService(si.Service, si.Implementation);
+                });
 
-                _requiredServicesProvider.RequiredTransientServices?.ForEach(AddRequiredTransientService);
+                _requiredServicesProvider.RequiredTransientServices?.ForEach(si => {
+                    AddRequiredTransientService(si.Service, si.Implementation);
+                });
             }
         }
     }
