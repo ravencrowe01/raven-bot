@@ -23,6 +23,7 @@ using DSharpPlus.Interactivity;
 using DSharpPlus.Interactivity.Extensions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -149,19 +150,19 @@ namespace RavenBot {
         public void AddRequiredSingletonService<TService, TImplementation> () where TService : class where TImplementation : class => AddRequiredSingletonService(typeof(TService), typeof(TImplementation));
 
         public void AddRequiredSingletonService (Type service, Type implementation) {
-            _serviceDescriptors = _serviceDescriptors.AddSingleton(service, implementation);
+            _serviceDescriptors.TryAddSingleton(service, implementation);
         }
 
         public void AddRequiredScopedService<TService, TImplementation> () where TService : class where TImplementation : class => AddRequiredScopedService(typeof(TService), typeof(TImplementation));
 
         public void AddRequiredScopedService (Type service, Type implementation) {
-            _serviceDescriptors = _serviceDescriptors.AddScoped(service, implementation);
+            _serviceDescriptors.TryAddScoped(service, implementation);
         }
 
         public void AddRequiredTransientService<TService, TImplementation> () where TService : class where TImplementation : class => AddRequiredTransientService(typeof(TService), typeof(TImplementation));
 
         public void AddRequiredTransientService (Type service, Type implementation) {
-            _serviceDescriptors = _serviceDescriptors.AddTransient(service, implementation);
+            _serviceDescriptors.TryAddTransient(service, implementation);
         }
     }
 }

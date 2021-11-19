@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <Platforms>x64</Platforms>
     <Authors>Raven Crowe</Authors>
     <Description>An implementation of RavenBot to load commands from external assemblies at runtime.</Description>
@@ -14,9 +14,8 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <SignAssembly>false</SignAssembly>
-    <AssemblyOriginatorKeyFile>RavenBot.pfx</AssemblyOriginatorKeyFile>
-    <Version>1.1.0</Version>
-    <AssemblyVersion>1.1.0.0</AssemblyVersion>
+    <Version>1.2.0</Version>
+    <AssemblyVersion>1.2.0.0</AssemblyVersion>
   </PropertyGroup>
 
   <ItemGroup>

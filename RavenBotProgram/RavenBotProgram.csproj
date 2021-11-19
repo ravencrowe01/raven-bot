@@ -1,8 +1,8 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <Platforms>x64</Platforms>
     <PackageId>RavenBotProgram</PackageId>
     <Authors>Raven Crowe</Authors>
@@ -16,7 +16,8 @@
     <PackageTags>Discord, bot, Discord Bot</PackageTags>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <SignAssembly>false</SignAssembly>
-    <AssemblyOriginatorKeyFile>RavenBot.pfx</AssemblyOriginatorKeyFile>
+    <Version>1.1.0</Version>
+	  <AssemblyVersion>1.1.0.0</AssemblyVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
