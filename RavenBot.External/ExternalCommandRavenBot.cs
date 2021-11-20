@@ -29,7 +29,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 
 namespace RavenBot.External {
-    public class ExternalCommandRavenBot : RavenBot {
+    public class ExternalCommandRavenBot : Bot {
 
         private readonly Func<ILogger<BaseDiscordClient>, ICommandLoader> _commandLoaderBuilder;
         private ICommandLoader _commandLoader;

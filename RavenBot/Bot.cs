@@ -31,7 +31,7 @@ using System.Linq;
 using System.Threading.Tasks;
 
 namespace RavenBot {
-    public class RavenBot {
+    public class Bot {
         public const string TokenKey = "token";
         public const string PrefixKey = "prefix";
         public const string InteractivityKey = "interactivity";
@@ -52,7 +52,7 @@ namespace RavenBot {
         protected CommandsNextExtension _commands;
 
 
-        public RavenBot () {
+        public Bot () {
             try {
                 _config = new ConfigurationBuilder().AddJsonFile("config.json", false).Build();
             }
