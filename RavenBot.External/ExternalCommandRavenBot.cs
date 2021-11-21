@@ -52,42 +52,50 @@ namespace RavenBot.External {
         private ExternalCommandRavenBot () { }
 
         public override async Task RunAsync () {
-            Setup();
-            LoadCommands();
-            LoadRequiredServices();
-            await _client.ConnectAsync().ConfigureAwait(false);
+            Setup ();
+            await _client.ConnectAsync ().ConfigureAwait (false);
+        }
 
-            void LoadCommands () {
-                _commandLoader ??= _commandLoaderBuilder.Invoke(_client.Logger);
+        private void Setup () {
+            CreateDiscordClient (_config);
+            LoadInteractivity ();
+            LoadCommands ();
+            LoadRequiredServices ();
+            UseCommandsNext (_client, _config, _serviceDescriptors, _commandTypes);
+        }
 
-                _commandAssemblies = _commandLoader.LoadCommandAssemblies();
+        private void LoadCommands () {
+            _commandLoader ??= _commandLoaderBuilder.Invoke (_client.Logger);
 
-                _commandAssemblies.ForEach(asm => {
-                    var types = asm.GetTypes().ToList();
+            _commandAssemblies = _commandLoader.LoadCommandAssemblies ();
 
-                    types.ForEach(type => {
-                        if (type.IsAssignableTo(typeof(BaseCommandModule))) {
-                            _commandTypes.Add(type);
-                        }
-                    });
+            var externalCommands = new List<Type> ();
+
+            _commandAssemblies.ForEach (asm => {
+                var types = asm.GetTypes ().ToList ();
+
+                types.ForEach (type => {
+                    if (type.IsAssignableTo (typeof (BaseCommandModule))) {
+                        _commandTypes.Add (type);
+                    }
                 });
-            }
+            });
+        }
 
-            void LoadRequiredServices () {
-                _requiredServicesProvider ??= _requiredServicesProviderBuilder.Invoke(_commandAssemblies);
+        private void LoadRequiredServices () {
+            _requiredServicesProvider ??= _requiredServicesProviderBuilder.Invoke (_commandAssemblies);
 
-                _requiredServicesProvider.RequiredSingletonServices?.ForEach(si => {
-                    AddRequiredSingletonService(si.Service, si.Implementation);
-                });
+            _requiredServicesProvider.RequiredSingletonServices?.ForEach (si => {
+                AddRequiredSingletonService (si.Service, si.Implementation);
+            });
 
-                _requiredServicesProvider.RequiredScopedServices?.ForEach(si => {
-                    AddRequiredScopedService(si.Service, si.Implementation);
-                });
+            _requiredServicesProvider.RequiredScopedServices?.ForEach (si => {
+                AddRequiredScopedService (si.Service, si.Implementation);
+            });
 
-                _requiredServicesProvider.RequiredTransientServices?.ForEach(si => {
-                    AddRequiredTransientService(si.Service, si.Implementation);
-                });
-            }
+            _requiredServicesProvider.RequiredTransientServices?.ForEach (si => {
+                AddRequiredTransientService (si.Service, si.Implementation);
+            });
         }
     }
 }

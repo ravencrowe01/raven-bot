@@ -17,12 +17,12 @@
  */
 #endregion
 
-using System;
+using System.Collections.Generic;
 
 namespace RavenBot.Required {
     public interface IRequiredServices {
-        Type[] RequiredSingletons { get; }
-        Type[] RequiredScoped { get; }
-        Type[] RequiredTransient { get; }
+        List<RequiredService> RequiredSingletons { get; }
+        List<RequiredService> RequiredScoped { get; }
+        List<RequiredService> RequiredTransient { get; }
     }
 }

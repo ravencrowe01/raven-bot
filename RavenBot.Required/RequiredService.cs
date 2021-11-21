@@ -19,7 +19,7 @@
 
 using System;
 
-namespace RavenBot.External.Services {
+namespace RavenBot.Required {
     public struct RequiredService {
         public Type Service { get; set; }
         public Type Implementation { get; set; }

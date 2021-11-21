@@ -51,118 +51,99 @@ namespace RavenBot {
         protected DiscordClient _client;
         protected CommandsNextExtension _commands;
 
-
         public Bot () {
             try {
-                _config = new ConfigurationBuilder().AddJsonFile("config.json", false).Build();
+                _config = new ConfigurationBuilder ().AddJsonFile ("config.json", false).Build ();
             }
             catch (FileNotFoundException e) {
-                throw new FileNotFoundException("Configuration file, config.json, not found in current working directory, please include a config file.", e);
+                throw new FileNotFoundException ("Configuration file, config.json, not found in current working directory, please include a config file.", e);
             }
 
-            _commandTypes = new List<Type>();
-            _serviceDescriptors = new ServiceCollection();
+            _commandTypes = new List<Type> ();
+            _serviceDescriptors = new ServiceCollection ();
         }
 
         public virtual async Task RunAsync () {
-            Setup();
-            await _client.ConnectAsync().ConfigureAwait(false);
+            Setup ();
+            await _client.ConnectAsync ().ConfigureAwait (false);
         }
 
-        protected void Setup () {
-            _client = CreateDiscordClient(_config);
-            LoadInteractivity();
-            _commands = UseCommandsNext(_client, _config, _serviceDescriptors, _commandTypes);
+        private void Setup () {
+            CreateDiscordClient (_config);
+            LoadInteractivity ();
+            UseCommandsNext (_client, _config, _serviceDescriptors, _commandTypes);
+        }
 
-            static DiscordClient CreateDiscordClient (IConfiguration config) => 
-                new(new DiscordConfiguration() {
-                Token = config[TokenKey],
+        protected void CreateDiscordClient (IConfiguration config) {
+            _client = new DiscordClient (new DiscordConfiguration () {
+                Token = config [TokenKey],
                 TokenType = TokenType.Bot,
                 Intents = DiscordIntents.AllUnprivileged
             });
+        }
 
-            static CommandsNextExtension UseCommandsNext (DiscordClient client, IConfigurationRoot config, IServiceCollection serviceDescriptors, List<Type> commandTypes) {
-                var commands = client.UseCommandsNext(new CommandsNextConfiguration() {
-                    StringPrefixes = new[] { config[PrefixKey] },
-                    Services = serviceDescriptors.BuildServiceProvider()
-                });
+        protected void LoadInteractivity () {
+            var interactivitySection = _config.GetSection (InteractivityKey);
+            var children = interactivitySection.GetChildren ().ToList ();
 
-                commandTypes.ForEach(t => commands.RegisterCommands(t));
-
-                return commands;
+            if (children?.Count == 0) {
+                return;
             }
 
-            void LoadInteractivity () {
-                var interactivitySection = _config.GetSection(InteractivityKey);
-                var children = interactivitySection.GetChildren().ToList();
+            _client.UseInteractivity (new InteractivityConfiguration () {
+                Timeout = GetDefaultTimeOut ()
+            });
 
-                if (children?.Count == 0) {
-                    return;
-                }
+            TimeSpan GetDefaultTimeOut () {
+                var timeoutSecton = _config.GetSection (TimeOutKey);
 
-                _client.UseInteractivity(new InteractivityConfiguration() {
-                    Timeout = GetDefaultTimeOut()
+                var timeouts = new Dictionary<string, int> ();
+
+                children.ForEach (c => {
+                    timeouts.Add(c.Key, int.Parse(c.Value));
                 });
 
-                TimeSpan GetDefaultTimeOut () {
-                    var timeoutSecton = _config.GetSection(TimeOutKey);
-                    var days = 0;
-                    var hours = 0;
-                    var minutes = 0;
-                    var seconds = 30;
-                    var miliseconds = 0;
-
-                    children.ForEach(c => {
-                        switch (c.Key) {
-                            case DaysKey:
-                                days = int.Parse(c.Value);
-                                break;
-                            case HoursKey:
-                                hours = int.Parse(c.Value);
-                                break;
-                            case MinutesKey:
-                                minutes = int.Parse(c.Value);
-                                break;
-                            case SecondsKey:
-                                seconds = int.Parse(c.Value);
-                                break;
-                            case MilisecondsKey:
-                                miliseconds = int.Parse(c.Value);
-                                break;
-                        }
-                    });
-
-                    return new TimeSpan(days, hours, minutes, seconds, miliseconds);
-                }
+                return new TimeSpan (timeouts[DaysKey], timeouts[HoursKey], timeouts[MinutesKey], timeouts[SecondsKey], timeouts[MilisecondsKey]);
             }
+        }
+
+        protected void UseCommandsNext (DiscordClient client, IConfigurationRoot config, IServiceCollection serviceDescriptors, List<Type> commandTypes) {
+            var commands = client.UseCommandsNext (new CommandsNextConfiguration () {
+                StringPrefixes = new [] { config [PrefixKey] },
+                Services = serviceDescriptors.BuildServiceProvider ()
+            });
+
+            commandTypes.ForEach (t => commands.RegisterCommands (t));
+
+            _commands = commands;
         }
 
         public void AddCommandType<T> () where T : BaseCommandModule {
-            AddCommandType(typeof(T));
+            AddCommandType (typeof (T));
         }
 
         public void AddCommandType (Type type) {
-            if (type.IsAssignableTo(typeof(BaseCommandModule))) {
-                _commandTypes.Add(type);
+            if (type.IsAssignableTo (typeof (BaseCommandModule))) {
+                _commandTypes.Add (type);
             }
         }
 
-        public void AddRequiredSingletonService<TService, TImplementation> () where TService : class where TImplementation : class => AddRequiredSingletonService(typeof(TService), typeof(TImplementation));
+        public void AddRequiredSingletonService<TService, TImplementation> () where TService : class where TImplementation : class => AddRequiredSingletonService (typeof (TService), typeof (TImplementation));
 
         public void AddRequiredSingletonService (Type service, Type implementation) {
-            _serviceDescriptors.TryAddSingleton(service, implementation);
+            _serviceDescriptors.TryAddSingleton (service, implementation);
         }
 
-        public void AddRequiredScopedService<TService, TImplementation> () where TService : class where TImplementation : class => AddRequiredScopedService(typeof(TService), typeof(TImplementation));
+        public void AddRequiredScopedService<TService, TImplementation> () where TService : class where TImplementation : class => AddRequiredScopedService (typeof (TService), typeof (TImplementation));
 
         public void AddRequiredScopedService (Type service, Type implementation) {
-            _serviceDescriptors.TryAddScoped(service, implementation);
+            _serviceDescriptors.TryAddScoped (service, implementation);
         }
 
-        public void AddRequiredTransientService<TService, TImplementation> () where TService : class where TImplementation : class => AddRequiredTransientService(typeof(TService), typeof(TImplementation));
+        public void AddRequiredTransientService<TService, TImplementation> () where TService : class where TImplementation : class => AddRequiredTransientService (typeof (TService), typeof (TImplementation));
 
         public void AddRequiredTransientService (Type service, Type implementation) {
-            _serviceDescriptors.TryAddTransient(service, implementation);
+            _serviceDescriptors.TryAddTransient (service, implementation);
         }
     }
 }
