@@ -13,9 +13,10 @@
     <PackageTags>Discord, bot, Discord Bot, RavenBot</PackageTags>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-    <SignAssembly>false</SignAssembly>
-    <Version>1.1.0</Version>
-	  <AssemblyVersion>1.1.0.0</AssemblyVersion>
+    <SignAssembly>True</SignAssembly>
+    <Version>1.1.1</Version>
+	<AssemblyVersion>1.1.0.0</AssemblyVersion>
+	<AssemblyOriginatorKeyFile>..\ravenbot.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
 
   <ItemGroup>

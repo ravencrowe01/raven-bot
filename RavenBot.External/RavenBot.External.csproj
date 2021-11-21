@@ -13,9 +13,10 @@
     <RepositoryType>git</RepositoryType>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-    <SignAssembly>false</SignAssembly>
-    <Version>1.2.0</Version>
+    <SignAssembly>True</SignAssembly>
+    <Version>1.2.1</Version>
     <AssemblyVersion>1.2.0.0</AssemblyVersion>
+    <AssemblyOriginatorKeyFile>..\ravenbot.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
 
   <ItemGroup>

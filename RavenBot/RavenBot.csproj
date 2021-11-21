@@ -14,9 +14,10 @@
     <RepositoryUrl>https://github.com/ravencrowe01/raven-bot</RepositoryUrl>
     <PackageProjectUrl>https://github.com/ravencrowe01/raven-bot</PackageProjectUrl>
     <RepositoryType>git</RepositoryType>
-    <SignAssembly>false</SignAssembly>
-    <Version>2.0.0</Version>
-	  <AssemblyVersion>2.0.0.0</AssemblyVersion>
+    <SignAssembly>True</SignAssembly>
+    <Version>2.0.1</Version>
+	<AssemblyVersion>2.0.0.0</AssemblyVersion>
+	<AssemblyOriginatorKeyFile>..\ravenbot.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
 
   <ItemGroup>

@@ -15,9 +15,10 @@
     <RepositoryType>git</RepositoryType>
     <PackageTags>Discord, bot, Discord Bot</PackageTags>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-    <SignAssembly>false</SignAssembly>
+    <SignAssembly>True</SignAssembly>
     <Version>1.1.0</Version>
-	  <AssemblyVersion>1.1.0.0</AssemblyVersion>
+	<AssemblyVersion>1.1.0.0</AssemblyVersion>
+	<AssemblyOriginatorKeyFile>..\ravenbot.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
