@@ -17,6 +17,7 @@
  */
 #endregion
 
+using DSharpPlus.CommandsNext;
 using RavenBot.Required;
 using System;
 using System.Collections.Generic;
@@ -31,12 +32,12 @@ namespace RavenBot.External.Commands {
                 throw new IOException ($"The directory, {workingDirectory}, does not exist.");
             }
 
-            var assemblyPaths = Directory.GetFiles (workingDirectory, "commands_*.dll").ToList ();
+            var assemblyPaths = Directory.GetFiles (workingDirectory, "*.dll").ToList ();
 
             var assemblies = new List<Assembly> ();
 
             foreach (var assemblyPath in assemblyPaths) {
-                var asm = Assembly.Load (assemblyPath);
+                var asm = Assembly.LoadFrom (assemblyPath);
                 assemblies.Add (asm);
             }
 
@@ -57,7 +58,7 @@ namespace RavenBot.External.Commands {
 
         private static IEnumerable<Type> GetCommandTypes (IEnumerable<Assembly> assemblies) => (from asm in assemblies
                                                                                                 from type in asm.GetTypes ()
-                                                                                                where type.IsAssignableTo (typeof (IRequiredServices))
+                                                                                                where type.IsAssignableTo (typeof (BaseCommandModule))
                                                                                                 select type).ToList ();
     }
 }

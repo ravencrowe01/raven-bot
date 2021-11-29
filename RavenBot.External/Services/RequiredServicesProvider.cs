@@ -40,7 +40,7 @@ namespace RavenBot.External.Services {
 
             List<IRequiredServices> requiredServices = LoadRequiredServices (assemblies);
 
-            if (requiredServices.Count < 0) {
+            if (requiredServices.Count < 1) {
                 return null;
             }
 
@@ -48,12 +48,12 @@ namespace RavenBot.External.Services {
         }
 
         private static List<Assembly> LoadAssemblies (string workingDirectory) {
-            var assemblyPaths = Directory.GetFiles (workingDirectory, "services_*.dll").ToList ();
+            var assemblyPaths = Directory.GetFiles (workingDirectory, "*.dll").ToList ();
 
             var assemblies = new List<Assembly> ();
 
             foreach (var assemblyPath in assemblyPaths) {
-                var asm = Assembly.Load (assemblyPath);
+                var asm = Assembly.LoadFrom (assemblyPath);
                 assemblies.Add (asm);
             }
 

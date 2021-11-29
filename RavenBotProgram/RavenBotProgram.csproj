@@ -19,7 +19,7 @@
     <Version>1.1.0</Version>
 	<AssemblyVersion>1.1.0.0</AssemblyVersion>
 	<AssemblyOriginatorKeyFile>..\ravenbot.snk</AssemblyOriginatorKeyFile>
-	<AssemblyName>RavenBot</AssemblyName>
+	<AssemblyName>RavenBotProgram</AssemblyName>
 	<StartupObject>RavenBotProgram.Program</StartupObject>
   </PropertyGroup>
 
