@@ -14,8 +14,8 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <SignAssembly>True</SignAssembly>
-    <Version>1.2.1</Version>
-    <AssemblyVersion>1.2.0.0</AssemblyVersion>
+    <Version>1.3.0</Version>
+    <AssemblyVersion>1.3.0.0</AssemblyVersion>
     <AssemblyOriginatorKeyFile>..\ravenbot.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
 
