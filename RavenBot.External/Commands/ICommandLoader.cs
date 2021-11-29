@@ -17,11 +17,11 @@
  */
 #endregion
 
+using System;
 using System.Collections.Generic;
-using System.Reflection;
 
 namespace RavenBot.External.Commands {
     public interface ICommandLoader {
-        List<Assembly> LoadCommandAssemblies ();
+        IEnumerable<Type> LoadCommandTypes (string workingDirectory);
     }
 }

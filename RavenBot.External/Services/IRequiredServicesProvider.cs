@@ -17,13 +17,10 @@
  */
 #endregion
 
-using RavenBot.Required;
-using System.Collections.Generic;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace RavenBot.External.Services {
     public interface IRequiredServicesProvider {
-        List<RequiredService> RequiredSingletonServices { get; }
-        List<RequiredService> RequiredScopedServices { get; }
-        List<RequiredService> RequiredTransientServices { get; }
+        IServiceCollection LoadRequiredServices (string workingDirectory);
     }
 }

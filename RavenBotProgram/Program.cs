@@ -25,15 +25,15 @@ using System.Threading.Tasks;
 namespace RavenBotProgram {
     internal class Program {
         private static void Main () {
-            MainAsync().GetAwaiter().GetResult();
+            MainAsync ().GetAwaiter ().GetResult ();
         }
 
         private static async Task MainAsync () {
-            var bot = new ExternalCommandRavenBot((logger) => new CommandLoader(logger),
-                                                    (assemblies) => new RequiredServicesProvider(assemblies));
+            var bot = new ExternalCommandRavenBot (new CommandLoader (),
+                                                    new RequiredServicesProvider ());
 
-            await bot.RunAsync();
-            await Task.Delay(-1);
+            await bot.RunAsync ();
+            await Task.Delay (-1);
         }
     }
 }

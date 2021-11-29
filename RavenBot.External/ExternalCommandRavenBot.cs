@@ -18,31 +18,22 @@
 #endregion
 
 using DSharpPlus;
-using DSharpPlus.CommandsNext;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using RavenBot.External.Commands;
 using RavenBot.External.Services;
 using System;
-using System.Collections.Generic;
+using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
 
 namespace RavenBot.External {
     public class ExternalCommandRavenBot : Bot {
+        private string _commandDirectory = Directory.GetCurrentDirectory () + @"\commands";
 
-        private readonly Func<ILogger<BaseDiscordClient>, ICommandLoader> _commandLoaderBuilder;
         private ICommandLoader _commandLoader;
-        private List<Assembly> _commandAssemblies;
 
-        private readonly Func<List<Assembly>, IRequiredServicesProvider> _requiredServicesProviderBuilder;
         private IRequiredServicesProvider _requiredServicesProvider;
-
-        public ExternalCommandRavenBot (Func<ILogger<BaseDiscordClient>, ICommandLoader> commandLoaderBuilder,
-                                        Func<List<Assembly>, IRequiredServicesProvider> requiredServicesProviderBuilder) {
-            _commandLoaderBuilder = commandLoaderBuilder;
-            _requiredServicesProviderBuilder = requiredServicesProviderBuilder;
-        }
 
         public ExternalCommandRavenBot (ICommandLoader commandLoader, IRequiredServicesProvider requiredServicesProvider) {
             _commandLoader = commandLoader;
@@ -52,50 +43,48 @@ namespace RavenBot.External {
         private ExternalCommandRavenBot () { }
 
         public override async Task RunAsync () {
-            Setup ();
-            await _client.ConnectAsync ().ConfigureAwait (false);
+            var completed = Setup ();
+
+            if (completed) {
+                await _client.ConnectAsync ().ConfigureAwait (false);
+            }
         }
 
-        private void Setup () {
+        private bool Setup () {
             CreateDiscordClient (_config);
             LoadInteractivity ();
-            LoadCommands ();
-            LoadRequiredServices ();
+
+            var created = TryCreateCommandDirectory (_client.Logger);
+
+            if (created) {
+                _client.Logger.LogError ("No commands were present. A commands directory was created. Please add commands to the directory then run again.");
+                return false;
+            }
+
+            _commandTypes = _commandLoader.LoadCommandTypes (_commandDirectory).ToList ();
+
+            _serviceDescriptors.Add (_requiredServicesProvider.LoadRequiredServices (_commandDirectory));
+
             UseCommandsNext (_client, _config, _serviceDescriptors, _commandTypes);
+
+            return true;
         }
 
-        private void LoadCommands () {
-            _commandLoader ??= _commandLoaderBuilder.Invoke (_client.Logger);
+        private bool TryCreateCommandDirectory (ILogger<BaseDiscordClient> logger) {
+            if (!Directory.Exists (_commandDirectory)) {
+                try {
+                    Directory.CreateDirectory (_commandDirectory);
+                    return true;
+                }
+                catch (IOException) {
+                    logger.LogWarning ("A file named 'commands' exists in working directory.");
+                }
+                catch (UnauthorizedAccessException) {
+                    logger.LogWarning ("Tried to create commands directory, access was denied.");
+                }
+            }
 
-            _commandAssemblies = _commandLoader.LoadCommandAssemblies ();
-
-            var externalCommands = new List<Type> ();
-
-            _commandAssemblies.ForEach (asm => {
-                var types = asm.GetTypes ().ToList ();
-
-                types.ForEach (type => {
-                    if (type.IsAssignableTo (typeof (BaseCommandModule))) {
-                        _commandTypes.Add (type);
-                    }
-                });
-            });
-        }
-
-        private void LoadRequiredServices () {
-            _requiredServicesProvider ??= _requiredServicesProviderBuilder.Invoke (_commandAssemblies);
-
-            _requiredServicesProvider.RequiredSingletonServices?.ForEach (si => {
-                AddRequiredSingletonService (si.Service, si.Implementation);
-            });
-
-            _requiredServicesProvider.RequiredScopedServices?.ForEach (si => {
-                AddRequiredScopedService (si.Service, si.Implementation);
-            });
-
-            _requiredServicesProvider.RequiredTransientServices?.ForEach (si => {
-                AddRequiredTransientService (si.Service, si.Implementation);
-            });
+            return false;
         }
     }
 }

@@ -17,9 +17,11 @@
  */
 #endregion
 
+using Microsoft.Extensions.DependencyInjection;
 using RavenBot.Required;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 
@@ -29,95 +31,90 @@ namespace RavenBot.External.Services {
         public List<RequiredService> RequiredScopedServices { get; } = new ();
         public List<RequiredService> RequiredTransientServices { get; } = new ();
 
-        public RequiredServicesProvider (IReadOnlyCollection<Assembly> commandAssemblies) {
-            GetRequiredServices (commandAssemblies);
+        public IServiceCollection LoadRequiredServices (string workingDirectory) {
+            if (!Directory.Exists (workingDirectory)) {
+                throw new IOException ($"The directory, {workingDirectory}, does not exist.");
+            }
+
+            List<Assembly> assemblies = LoadAssemblies (workingDirectory);
+
+            List<IRequiredServices> requiredServices = LoadRequiredServices (assemblies);
+
+            if (requiredServices.Count < 0) {
+                return null;
+            }
+
+            return BuildServiceCollection (requiredServices);
         }
 
-        private void GetRequiredServices (IReadOnlyCollection<Assembly> commandAssemblies) {
-            var requiredServicesConfigurations = GetServiceConfigurations ();
+        private static List<Assembly> LoadAssemblies (string workingDirectory) {
+            var assemblyPaths = Directory.GetFiles (workingDirectory, "services_*.dll").ToList ();
 
-            GetRequiredSingletons ();
-            GetRequiredScoped ();
-            GetRequiredTransient ();
+            var assemblies = new List<Assembly> ();
 
-            IList<Type> GetServiceConfigurations () {
-                return (from asm in commandAssemblies
-                        from type in asm.GetTypes ()
-                        where type.IsAssignableTo (typeof (IRequiredServices))
-                        select type).ToList ();
+            foreach (var assemblyPath in assemblyPaths) {
+                var asm = Assembly.Load (assemblyPath);
+                assemblies.Add (asm);
             }
 
-            void GetRequiredSingletons () {
-                var singletons = LoadRequiredSingletons ();
+            return assemblies;
+        }
 
-                if (singletons?.Count > 0) {
-                    foreach (var service in singletons) {
-                        RequiredSingletonServices.Add (service);
-                    }
-                }
+        private static IList<Type> GetServiceConfigurations (IEnumerable<Assembly> commandAssemblies) => (from asm in commandAssemblies
+                                                                                                          from type in asm.GetTypes ()
+                                                                                                          where type.IsAssignableTo (typeof (IRequiredServices))
+                                                                                                          select type).ToList ();
 
-                List<RequiredService> LoadRequiredSingletons () {
-                    var services = new List<RequiredService> ();
+        private static List<IRequiredServices> LoadRequiredServices (List<Assembly> assemblies) {
+            var requiredServicesConfigurations = GetServiceConfigurations (assemblies);
 
-                    foreach (var config in requiredServicesConfigurations) {
-                        var requiredServices = Activator.CreateInstance (config) as IRequiredServices;
+            var requiredServices = new List<IRequiredServices> ();
 
-                        if (requiredServices?.RequiredSingletons?.Count > 0) {
-                            services.AddRange (requiredServices.RequiredSingletons);
-                        }
-                    }
-
-                    return services;
+            foreach (var config in requiredServicesConfigurations) {
+                if (config.GetConstructors ().Any (c => c.GetParameters ().Length == 0)) {
+                    requiredServices.Add (Activator.CreateInstance (config) as IRequiredServices);
                 }
             }
 
-            void GetRequiredScoped () {
-                var scoped = LoadRequiredScoped ();
+            return requiredServices;
+        }
 
-                if (scoped?.Count > 0) {
-                    foreach (var service in scoped) {
-                        RequiredScopedServices.Add (service);
-                    }
-                }
+        private static void AddSingletonServices (IRequiredServices service, IServiceCollection serviceCollection) {
+            var singletons = service.RequiredSingletons;
 
-                List<RequiredService> LoadRequiredScoped () {
-                    var services = new List<RequiredService> ();
+            if (singletons?.Count > 0) {
+                singletons.ForEach (s => serviceCollection.AddSingleton (s.Service, s.Implementation));
+            }
+        }
 
-                    foreach (var config in requiredServicesConfigurations) {
-                        var requiredServices = Activator.CreateInstance (config) as IRequiredServices;
+        private static void AddScopedServices (IRequiredServices service, IServiceCollection serviceCollection) {
+            var scoped = service.RequiredScoped;
 
-                        if (requiredServices?.RequiredScoped?.Count > 0) {
-                            services.AddRange (requiredServices.RequiredScoped);
-                        }
-                    }
+            if (scoped?.Count > 0) {
+                scoped.ForEach (s => serviceCollection.AddScoped (s.Service, s.Implementation));
+            }
+        }
 
-                    return services;
-                }
+        private static void AddTransientServices (IRequiredServices service, IServiceCollection serviceCollection) {
+            var transients = service.RequiredTransient;
+
+            if (transients?.Count > 0) {
+                transients.ForEach (s => serviceCollection.AddTransient (s.Service, s.Implementation));
+            }
+        }
+
+        private static IServiceCollection BuildServiceCollection (List<IRequiredServices> requiredServices) {
+            var serviceCollection = new ServiceCollection ();
+
+            foreach (var service in requiredServices) {
+                AddSingletonServices (service, serviceCollection);
+
+                AddScopedServices (service, serviceCollection);
+
+                AddTransientServices (service, serviceCollection);
             }
 
-            void GetRequiredTransient () {
-                var transient = LoadRequiredTransient ();
-
-                if (transient?.Count > 0) {
-                    foreach (var service in transient) {
-                        RequiredTransientServices.Add (service);
-                    }
-                }
-
-                List<RequiredService> LoadRequiredTransient () {
-                    var services = new List<RequiredService> ();
-
-                    foreach (var config in requiredServicesConfigurations) {
-                        var requiredServices = Activator.CreateInstance (config) as IRequiredServices;
-
-                        if (requiredServices?.RequiredTransient?.Count > 0) {
-                            services.AddRange (requiredServices.RequiredTransient);
-                        }
-                    }
-
-                    return services;
-                }
-            }
+            return serviceCollection;
         }
     }
 }

@@ -100,10 +100,10 @@ namespace RavenBot {
                 var timeouts = new Dictionary<string, int> ();
 
                 children.ForEach (c => {
-                    timeouts.Add(c.Key, int.Parse(c.Value));
+                    timeouts.Add (c.Key, int.Parse (c.Value));
                 });
 
-                return new TimeSpan (timeouts[DaysKey], timeouts[HoursKey], timeouts[MinutesKey], timeouts[SecondsKey], timeouts[MilisecondsKey]);
+                return new TimeSpan (timeouts [DaysKey], timeouts [HoursKey], timeouts [MinutesKey], timeouts [SecondsKey], timeouts [MilisecondsKey]);
             }
         }
 

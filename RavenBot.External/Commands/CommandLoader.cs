@@ -18,9 +18,6 @@
 #endregion
 
 using RavenBot.Required;
-using DSharpPlus;
-using DSharpPlus.CommandsNext;
-using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -29,45 +26,38 @@ using System.Reflection;
 
 namespace RavenBot.External.Commands {
     public class CommandLoader : ICommandLoader {
-        private readonly ILogger<BaseDiscordClient> _logger;
-
-        public CommandLoader(ILogger<BaseDiscordClient> logger) {
-            _logger = logger;
-        }
-
-        public List<Assembly> LoadCommandAssemblies () {
-            var assemblies = new List<Assembly>();
-            var commandDir = Directory.GetCurrentDirectory() + @"\commands";
-
-            if (!Directory.Exists(commandDir)) {
-                try {
-                    Directory.CreateDirectory(commandDir);
-                }
-                catch (IOException) {
-                    _logger.LogWarning("A file named 'commands' exists in working directory.");
-                }
-                catch (UnauthorizedAccessException) {
-                    _logger.LogWarning("Tried to create commands directory, access was denied.");
-                }
-                return assemblies;
+        public IEnumerable<Type> LoadCommandTypes (string workingDirectory) {
+            if (!Directory.Exists (workingDirectory)) {
+                throw new IOException ($"The directory, {workingDirectory}, does not exist.");
             }
 
-            Directory.GetFiles(commandDir, "*.dll").ToList().ForEach(ProcessAssembly);
+            var assemblyPaths = Directory.GetFiles (workingDirectory, "commands_*.dll").ToList ();
 
-            return assemblies;
+            var assemblies = new List<Assembly> ();
 
-            void ProcessAssembly (string p) {
-                var asm = Assembly.LoadFrom(p);
-
-                if (DoesAssemblyHaveCommands(asm)) {
-                    assemblies.Add(asm);
-                }
-
-                static bool DoesAssemblyHaveCommands (Assembly asm) =>
-                    asm.GetTypes().Any(t => t.IsAssignableTo(typeof(IRequiredServices))
-                                            || t.IsAssignableTo(typeof(BaseCommandModule)));
+            foreach (var assemblyPath in assemblyPaths) {
+                var asm = Assembly.Load (assemblyPath);
+                assemblies.Add (asm);
             }
+
+            return GetCommandTypes (assemblies);
         }
 
+        public IEnumerable<Type> LoadCommandTypes (IEnumerable<Assembly> assemblies) {
+            var commands = new List<Type> ();
+
+            var found = GetCommandTypes (assemblies);
+
+            if (found?.Count () > 0) {
+                commands.AddRange (found);
+            }
+
+            return commands;
+        }
+
+        private static IEnumerable<Type> GetCommandTypes (IEnumerable<Assembly> assemblies) => (from asm in assemblies
+                                                                                                from type in asm.GetTypes ()
+                                                                                                where type.IsAssignableTo (typeof (IRequiredServices))
+                                                                                                select type).ToList ();
     }
 }
