@@ -43,9 +43,9 @@ namespace RavenBot.External {
         private ExternalCommandRavenBot () { }
 
         public override async Task RunAsync () {
-            var completed = Setup ();
+            var setup = Setup ();
 
-            if (completed) {
+            if (setup) {
                 await _client.ConnectAsync ().ConfigureAwait (false);
             }
         }
@@ -61,7 +61,7 @@ namespace RavenBot.External {
                 return false;
             }
 
-            _commandTypes = _commandLoader.LoadCommandTypes (_commandDirectory).ToList ();
+            _commandTypes.AddRange( _commandLoader.LoadCommandTypes (_commandDirectory).ToList ());
 
             _serviceDescriptors.Add (_requiredServicesProvider.LoadRequiredServices (_commandDirectory));
 
